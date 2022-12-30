@@ -8,6 +8,8 @@ using ikoLite.Models.Interfaces;
 using ikoLite.Services.Saga.Requests;
 using ikoLite.Services.Consumers;
 using ikoLite.Messaging.Memory;
+using NUnit.Framework;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ikoLite.Tests
 {
@@ -23,7 +25,7 @@ namespace ikoLite.Tests
 		public async Task Init()
 		{
 			_provider = new ServiceCollection()
-				.AddMassTransitInMemoryTestHarness(confg =>
+				.AddMassTransitTestHarness(confg =>
 				{
 					confg.AddConsumer<RestaurantBookingRequestConsumer>();
 				})
@@ -47,7 +49,8 @@ namespace ikoLite.Tests
 
 
 		[Test(Author = "DD", Description = "check on any booking request consume")]
-		public async Task AnyBookingRequestConsumed()
+        [Retry(tryCount: 10)]
+        public async Task AnyBookingRequestConsumed()
 		{
             await _harness.Bus.Publish(new BookingRequest(Guid.NewGuid(), Guid.NewGuid(),Dish.nothing, DateTime.Now));
 
@@ -57,6 +60,7 @@ namespace ikoLite.Tests
 
 
         [Test(Author = "DD", Description = "check on booking table")]
+        [Retry(tryCount: 10)]
         public async Task BookingRequestConsumerTableBooked()
         {
 
